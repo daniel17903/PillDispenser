@@ -14,6 +14,9 @@
 #include <WiFiUdp.h>
 #include <ArduinoJson.h>
 
+// factor to convert microseconds to seconds
+#define uS_TO_S_FACTOR 1000000ULL 
+
 const Time defaultPillDispenseTime(7, 0, 0);
 
 
@@ -93,8 +96,11 @@ Time getPillDispenseTimeConfigurationFromServer(){
 }
 
 void sleepForSeconds(int seconds){
-  //esp_sleep_enable_timer_wakeup(seconds * 1000000ULL);
-  //esp_deep_sleep_start();
+  // see https://wiki.seeedstudio.com/XIAO_ESP32S3_Consumption/
+  esp_sleep_enable_timer_wakeup(seconds * uS_TO_S_FACTOR);
+  Serial.println("Going to sleep now");
+  Serial.flush();
+  esp_deep_sleep_start();
 }
 
 void setup() {
@@ -116,8 +122,7 @@ void setup() {
 
     long secondsToSleep = now.secondsUntilNext(configuredPillDispenseTime);
     Serial.print("Seconds to sleep: ");
-    Serial.print(secondsToSleep);
-
+    Serial.println(secondsToSleep);
 
 
     WiFi.mode(WIFI_OFF);    
