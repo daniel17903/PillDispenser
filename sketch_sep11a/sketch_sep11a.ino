@@ -3,9 +3,11 @@
 #ifdef ESP32
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include <ESP32Servo.h>
 #else
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
+#include <Servo.h>
 #endif
 #include <WiFiClientSecure.h>
 
@@ -17,8 +19,11 @@
 // factor to convert microseconds to seconds
 #define uS_TO_S_FACTOR 1000000ULL 
 
-const Time defaultPillDispenseTime(7, 0, 0);
+RTC_DATA_ATTR int bootCount = 0;
+RTC_DATA_ATTR bool dispenseOnWakeUp = true;
 
+const Time defaultPillDispenseTime(7, 0, 0);
+Servo servo; 
 
 boolean connectToWifi(){
   WiFi.mode(WIFI_STA);
@@ -52,17 +57,13 @@ Time getLocalTime(){
 Time getPillDispenseTimeConfigurationFromServer(){
   WiFiClientSecure *client = new WiFiClientSecure;
   if(client) {
-    // set secure client without certificate
     client->setInsecure();
-    //create an HTTPClient instance
     HTTPClient https;
 
-    //Initializing an HTTPS communication using the secure client
     Serial.print("[HTTPS] begin...\n");
     if (https.begin(*client, "homeserver.ge1ger.de", 8123, "/api/states/input_datetime.pill_dispense_time")) {  // HTTPS
       https.addHeader("Authorization", "Bearer " + haToken);
       Serial.print("[HTTPS] GET...\n");
-      // start connection and send HTTP header
       int httpCode = https.GET();
       // httpCode will be negative on error
       if (httpCode > 0) {
@@ -96,6 +97,12 @@ Time getPillDispenseTimeConfigurationFromServer(){
 }
 
 void sleepForSeconds(int seconds){
+  if(bootCount == 1){
+    // Give a chance to flash a new program before going into deep sleep
+    delay(30000);
+    seconds -= 30;
+  }
+
   // see https://wiki.seeedstudio.com/XIAO_ESP32S3_Consumption/
   esp_sleep_enable_timer_wakeup(seconds * uS_TO_S_FACTOR);
   Serial.println("Going to sleep now");
@@ -103,8 +110,29 @@ void sleepForSeconds(int seconds){
   esp_deep_sleep_start();
 }
 
+void dispensePill() {
+  Serial.print("Dispensing pill...");
+  // turn on Servo via Mosfet
+  digitalWrite(D2, HIGH);
+  // wait for servo power
+  delay(100);
+  servo.attach(D1, 600, 2400);
+  servo.write(0);              // tell servo to go to position in variable 'pos'
+  delay(1000);       
+  servo.write(180);              // tell servo to go to position in variable 'pos'
+  delay(1000);     
+  servo.detach();  
+  // turn off Servo via Mosfet
+  digitalWrite(D2, LOW);
+}
+
 void setup() {
     Serial.begin(115200);
+    ++bootCount;
+    Serial.println("Boot number: " + String(bootCount));
+    pinMode(D2, OUTPUT);
+
+    dispensePill();
 
     if(!connectToWifi()){
       Serial.println("Failed to connect to wifi, retrying in 1h...");
@@ -120,13 +148,13 @@ void setup() {
     Serial.print("Loaded configured pill dispense time: ");
     configuredPillDispenseTime.print();
 
+    WiFi.mode(WIFI_OFF);    
+
     long secondsToSleep = now.secondsUntilNext(configuredPillDispenseTime);
     Serial.print("Seconds to sleep: ");
     Serial.println(secondsToSleep);
 
-
-    WiFi.mode(WIFI_OFF);    
-    sleepForSeconds(60);
+    sleepForSeconds(secondsToSleep);
 }
 
 void loop()
