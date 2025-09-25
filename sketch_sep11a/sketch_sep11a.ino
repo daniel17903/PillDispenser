@@ -116,7 +116,7 @@ void dispensePill() {
   digitalWrite(D2, HIGH);
   // wait for servo power
   delay(100);
-  servo.attach(D1, 600, 2400);
+  servo.attach(D1, 500, 2400);
   servo.write(0);              // tell servo to go to position in variable 'pos'
   delay(1000);       
   servo.write(180);              // tell servo to go to position in variable 'pos'
