@@ -23,6 +23,7 @@ RTC_DATA_ATTR int bootCount = 0;
 RTC_DATA_ATTR bool dispenseOnWakeUp = true;
 
 const Time defaultPillDispenseTime(7, 0, 0);
+const Time loadConfigurationTime(6, 0, 0);
 Servo servo; 
 
 boolean connectToWifi(){
@@ -97,6 +98,9 @@ Time getPillDispenseTimeConfigurationFromServer(){
 }
 
 void sleepForSeconds(int seconds){
+  Serial.print("Seconds to sleep: ");
+  Serial.println(seconds);
+
   if(bootCount == 1){
     // Give a chance to flash a new program before going into deep sleep
     delay(30000);
@@ -111,6 +115,7 @@ void sleepForSeconds(int seconds){
 }
 
 void dispensePill() {
+  pinMode(D2, OUTPUT);
   Serial.print("Dispensing pill...");
   // turn on Servo via Mosfet
   digitalWrite(D2, HIGH);
@@ -130,9 +135,10 @@ void setup() {
     Serial.begin(115200);
     ++bootCount;
     Serial.println("Boot number: " + String(bootCount));
-    pinMode(D2, OUTPUT);
 
-    dispensePill();
+    if(dispenseOnWakeUp){
+      dispensePill();
+    }
 
     if(!connectToWifi()){
       Serial.println("Failed to connect to wifi, retrying in 1h...");
@@ -150,9 +156,21 @@ void setup() {
 
     WiFi.mode(WIFI_OFF);    
 
-    long secondsToSleep = now.secondsUntilNext(configuredPillDispenseTime);
-    Serial.print("Seconds to sleep: ");
-    Serial.println(secondsToSleep);
+    long secondsToSleep;
+    long secondsToSleepUntilConfiguredPillDispenseTime = now.secondsUntilNext(configuredPillDispenseTime);
+    long secondsToSleepUntilLoadConfigurationTime = now.secondsUntilNext(loadConfigurationTime);
+
+    if(secondsToSleepUntilLoadConfigurationTime < secondsToSleepUntilConfiguredPillDispenseTime){
+      dispenseOnWakeUp = false;
+      secondsToSleep = secondsToSleepUntilLoadConfigurationTime;
+      Serial.print("Sleeping until next configuration loading time: ");
+      loadConfigurationTime.print();
+    } else {
+      dispenseOnWakeUp = true;
+      secondsToSleep = secondsToSleepUntilConfiguredPillDispenseTime;
+      Serial.print("Sleeping until next pill dispense time: ");
+      configuredPillDispenseTime.print();
+    }
 
     sleepForSeconds(secondsToSleep);
 }
