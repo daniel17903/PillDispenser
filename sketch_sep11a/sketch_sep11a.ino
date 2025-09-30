@@ -26,6 +26,7 @@ const Time defaultPillDispenseTime(7, 0, 0);
 const Time loadConfigurationTime(6, 0, 0);
 Servo servo; 
 
+
 boolean connectToWifi(){
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
@@ -97,7 +98,7 @@ Time getPillDispenseTimeConfigurationFromServer(){
   return defaultPillDispenseTime;
 }
 
-void sleepForSeconds(int seconds){
+void sleepForSeconds(unsigned long long seconds){
   Serial.print("Seconds to sleep: ");
   Serial.println(seconds);
 
@@ -156,9 +157,9 @@ void setup() {
 
     WiFi.mode(WIFI_OFF);    
 
-    long secondsToSleep;
-    long secondsToSleepUntilConfiguredPillDispenseTime = now.secondsUntilNext(configuredPillDispenseTime);
-    long secondsToSleepUntilLoadConfigurationTime = now.secondsUntilNext(loadConfigurationTime);
+    unsigned long long secondsToSleep;
+    unsigned long long secondsToSleepUntilConfiguredPillDispenseTime = now.secondsUntilNext(configuredPillDispenseTime);
+    unsigned long long secondsToSleepUntilLoadConfigurationTime = now.secondsUntilNext(loadConfigurationTime);
 
     if(secondsToSleepUntilLoadConfigurationTime < secondsToSleepUntilConfiguredPillDispenseTime){
       dispenseOnWakeUp = false;
