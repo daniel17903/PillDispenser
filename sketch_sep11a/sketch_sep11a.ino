@@ -2,19 +2,17 @@
 #include "Time.h"
 #ifdef ESP32
 #include <WiFi.h>
-#include <HTTPClient.h>
 #include <ESP32Servo.h>
 #else
 #include <ESP8266WiFi.h>
-#include <ESP8266HTTPClient.h>
 #include <Servo.h>
 #endif
-#include <WiFiClientSecure.h>
 
 #include <Timezone.h>
 #include <NTPClient.h>
 #include <WiFiUdp.h>
 #include <ArduinoJson.h>
+#include "HaClient.h"
 
 // factor to convert microseconds to seconds
 #define uS_TO_S_FACTOR 1000000ULL 
@@ -22,9 +20,19 @@
 RTC_DATA_ATTR int bootCount = 0;
 RTC_DATA_ATTR bool dispenseOnWakeUp = true;
 
-const Time defaultPillDispenseTime(7, 0, 0);
+// these will be loaded from ha
+RTC_DATA_ATTR Time pillDispenseTime(8, 30, 0);
+RTC_DATA_ATTR bool pillDispenseEnabled = true;
+
+const long HOUR_IN_SECONDS = 60 * 60;
+const long QUARTER_HOUR_IN_SECONDS = 15 * 60;
+const long DAY_IN_SECONDS = 24 * 60 * 60;
+
+// the time to wake up to load configuration from server
 const Time loadConfigurationTime(6, 0, 0);
-Servo servo; 
+
+Servo servo;
+HaClient haClient(haHost, haPort, haToken); 
 
 
 boolean connectToWifi(){
@@ -56,47 +64,6 @@ Time getLocalTime(){
   return Time::fromTimeT(timeClient.getEpochTime(), berlin);
 }
 
-Time getPillDispenseTimeConfigurationFromServer(){
-  WiFiClientSecure *client = new WiFiClientSecure;
-  if(client) {
-    client->setInsecure();
-    HTTPClient https;
-
-    Serial.print("[HTTPS] begin...\n");
-    if (https.begin(*client, "homeserver.ge1ger.de", 8123, "/api/states/input_datetime.pill_dispense_time")) {  // HTTPS
-      https.addHeader("Authorization", "Bearer " + haToken);
-      Serial.print("[HTTPS] GET...\n");
-      int httpCode = https.GET();
-      // httpCode will be negative on error
-      if (httpCode > 0) {
-        // HTTP header has been send and Server response header has been handled
-       Serial.printf("[HTTPS] GET... code: %d\n", httpCode);
-        // file found at server
-        if (httpCode == HTTP_CODE_OK) {
-          // print server response payload
-          String payload = https.getString();
-          JsonDocument doc;
-          deserializeJson(doc, payload);
-          int hour = doc["attributes"]["hour"];
-          int minute = doc["attributes"]["minute"];
-          int second = doc["attributes"]["second"];
-          
-          return Time(hour, minute, second);
-        }
-      }
-      else {
-        Serial.printf("[HTTPS] GET... failed, error: %s\n", https.errorToString(httpCode).c_str());
-      }
-      https.end();
-    }
-  }
-  else {
-    Serial.printf("[HTTPS] Unable to connect\n");
-  }
-
-  Serial.println("Using default pill dispense time");
-  return defaultPillDispenseTime;
-}
 
 void sleepForSeconds(unsigned long long seconds){
   Serial.print("Seconds to sleep: ");
@@ -115,6 +82,28 @@ void sleepForSeconds(unsigned long long seconds){
   esp_deep_sleep_start();
 }
 
+void loadConfigFromHa(){
+  BooleanResult pillDispenseIsEnabledResult = haClient.getBooleanInput("input_boolean.pill_dispense_enabled");
+  if(pillDispenseIsEnabledResult.success){
+    pillDispenseEnabled = pillDispenseIsEnabledResult.result;
+    Serial.print("Loaded enabled state from ha: ");
+    Serial.println(pillDispenseEnabled);
+  } else {
+    Serial.print("Failed to load enabled state from ha, using previous value: ");
+    Serial.println(pillDispenseEnabled);
+  }
+
+  TimeResult configuredPillDispenseTime = haClient.getTimeInput("input_datetime.pill_dispense_time");
+  if(configuredPillDispenseTime.success){
+    pillDispenseTime = configuredPillDispenseTime.result;
+    Serial.print("Loaded pill dispense time from ha: ");
+    pillDispenseTime.print();
+  } else {
+    Serial.print("Failed to load pill dispense time from ha, using previous value: ");
+    pillDispenseTime.print();
+  }
+}
+
 void dispensePill() {
   pinMode(D2, OUTPUT);
   Serial.print("Dispensing pill...");
@@ -123,9 +112,9 @@ void dispensePill() {
   // wait for servo power
   delay(100);
   servo.attach(D1, 500, 2400);
-  servo.write(0);              // tell servo to go to position in variable 'pos'
+  servo.write(0);
   delay(1000);       
-  servo.write(180);              // tell servo to go to position in variable 'pos'
+  servo.write(180);
   delay(1000);     
   servo.detach();  
   // turn off Servo via Mosfet
@@ -137,13 +126,10 @@ void setup() {
     ++bootCount;
     Serial.println("Boot number: " + String(bootCount));
 
-    if(dispenseOnWakeUp){
-      dispensePill();
-    }
-
     if(!connectToWifi()){
+      dispenseOnWakeUp = false;
       Serial.println("Failed to connect to wifi, retrying in 1h...");
-      sleepForSeconds(60 * 60);
+      sleepForSeconds(HOUR_IN_SECONDS);
       return;
     }
     
@@ -151,26 +137,35 @@ void setup() {
     Serial.print("Time now: ");
     now.print();
 
-    Time configuredPillDispenseTime = getPillDispenseTimeConfigurationFromServer();
-    Serial.print("Loaded configured pill dispense time: ");
-    configuredPillDispenseTime.print();
+    loadConfigFromHa();
 
     WiFi.mode(WIFI_OFF);    
 
-    unsigned long long secondsToSleep;
-    unsigned long long secondsToSleepUntilConfiguredPillDispenseTime = now.secondsUntilNext(configuredPillDispenseTime);
-    unsigned long long secondsToSleepUntilLoadConfigurationTime = now.secondsUntilNext(loadConfigurationTime);
+    if(dispenseOnWakeUp && pillDispenseEnabled){
+      dispensePill();
+    }
 
-    if(secondsToSleepUntilLoadConfigurationTime < secondsToSleepUntilConfiguredPillDispenseTime){
+    unsigned long long secondsToSleep;
+    unsigned long long secondsToSleepUntilPillDispenseTime = now.secondsUntilNext(pillDispenseTime);
+    unsigned long long secondsToSleepUntilLoadConfigurationTime = now.secondsUntilNext(loadConfigurationTime);
+   
+    // if we already dispensed a pill now we don't want to dispense another one within the next 15min
+    // this can happen when waking up too early because the RTC in inaccurat
+    // or when the device was switched on < 15min before the configured time
+    if (secondsToSleepUntilPillDispenseTime < QUARTER_HOUR_IN_SECONDS && dispenseOnWakeUp) {
+      secondsToSleepUntilPillDispenseTime += DAY_IN_SECONDS;
+    }
+
+    if(secondsToSleepUntilLoadConfigurationTime < secondsToSleepUntilPillDispenseTime){
       dispenseOnWakeUp = false;
       secondsToSleep = secondsToSleepUntilLoadConfigurationTime;
       Serial.print("Sleeping until next configuration loading time: ");
       loadConfigurationTime.print();
     } else {
       dispenseOnWakeUp = true;
-      secondsToSleep = secondsToSleepUntilConfiguredPillDispenseTime;
+      secondsToSleep = secondsToSleepUntilPillDispenseTime;
       Serial.print("Sleeping until next pill dispense time: ");
-      configuredPillDispenseTime.print();
+      pillDispenseTime.print();
     }
 
     sleepForSeconds(secondsToSleep);
