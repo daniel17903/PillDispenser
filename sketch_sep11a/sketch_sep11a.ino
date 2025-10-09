@@ -25,7 +25,6 @@ RTC_DATA_ATTR Time pillDispenseTime(8, 30, 0);
 RTC_DATA_ATTR bool pillDispenseEnabled = true;
 
 const long HOUR_IN_SECONDS = 60 * 60;
-const long QUARTER_HOUR_IN_SECONDS = 15 * 60;
 const long DAY_IN_SECONDS = 24 * 60 * 60;
 
 // the time to wake up to load configuration from server
@@ -149,10 +148,11 @@ void setup() {
     unsigned long long secondsToSleepUntilPillDispenseTime = now.secondsUntilNext(pillDispenseTime);
     unsigned long long secondsToSleepUntilLoadConfigurationTime = now.secondsUntilNext(loadConfigurationTime);
    
-    // if we already dispensed a pill now we don't want to dispense another one within the next 15min
+    // if we already dispensed a pill now we don't want to dispense another one within the next 6h
     // this can happen when waking up too early because the RTC in inaccurat
     // or when the device was switched on < 15min before the configured time
-    if (secondsToSleepUntilPillDispenseTime < QUARTER_HOUR_IN_SECONDS && dispenseOnWakeUp) {
+    // or when today a pill was dispensed at an earlier time than tomorrow
+    if (secondsToSleepUntilPillDispenseTime < 6 * HOUR_IN_SECONDS && dispenseOnWakeUp) {
       secondsToSleepUntilPillDispenseTime += DAY_IN_SECONDS;
     }
 
