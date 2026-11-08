@@ -18,6 +18,6 @@ The original Shaztech files were superseded by these modified versions and remov
 - `top.stl` – lid (pins face into the housing)
 - `foot.stl` – stand, the wheel stands upright with the outlet facing down
 
-See `explosionszeichnung.png` for an exploded view (placement of the mechanism parts is schematic).
+See `explosionszeichnung.png` for an exploded view. The mechanism positions were derived from a photo of the assembled mechanism (accurate to about 1–2 mm).
 
 `render_explosion.py` regenerates the image (run it from this folder: `python3 render_explosion.py explosionszeichnung.png`).
