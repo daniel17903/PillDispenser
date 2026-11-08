@@ -16,6 +16,8 @@ The dispenser reads two helper entities via the [Home Assistant REST API](https:
 
 Check that the generated entity IDs match the table above.
 
+After creating the time helper, set it to your preferred dispense time. Don't give it an `initial` value in YAML: Home Assistant would reset it to that value on every restart and overwrite a time set by hand or by the automation below.
+
 **Or in YAML** (`configuration.yaml`):
 
 ```yaml
@@ -29,7 +31,6 @@ input_datetime:
     name: Pill dispense time
     has_date: false
     has_time: true
-    initial: "08:30:00"
 ```
 
 ## Automatically following the phone's next alarm
@@ -45,7 +46,7 @@ If no alarm is set, the sensor is `unavailable` and the automation keeps the pre
 Caveats:
 
 - The dispenser only reads the new time at its next wakeup (see below), so the alarm must be set before 06:00 to take effect the same morning.
-- When an alarm rings, the sensor jumps to the following alarm and the automation updates the dispense time right away, possibly before that day's pill has been dispensed. The double-dispense guard prevents a second pill as long as the new time is less than 6 hours after the old one. If the next alarm is much later (e.g. 07:00 on a weekday followed by 14:00), the device dispenses at the old time and **again** at the new time on the same day.
+- When an alarm rings, the sensor jumps to the following alarm and the automation updates the dispense time right away, possibly before that day's pill has been dispensed. In this case the device wakes up at the old time and dispenses, so the 6-hour guard applies: a new time less than 6 hours after the old one moves to the next day. If the next alarm is much later (e.g. 07:00 on a weekday followed by 14:00), the device dispenses at the old time and **again** at the new time on the same day.
 
 ## Access token
 

@@ -43,7 +43,7 @@ Details, including a sequence diagram: [docs/software.md](docs/software.md).
 | ---- | -------- |
 | [`firmware/`](firmware/) | Arduino sketch for the XIAO ESP32-S3 |
 | [`hardware/`](hardware/) | STL files, parts list, exploded-view render script |
-| [`homeassistant/`](homeassistant/) | Home Assistant helper setup |
+| [`homeassistant/`](homeassistant/) | Home Assistant helper setup and next-alarm automation |
 | [`docs/`](docs/) | Wiring, software flow, power consumption, images |
 
 ## Credits
