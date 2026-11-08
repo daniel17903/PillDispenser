@@ -1,5 +1,5 @@
 # Renders exploded_view.png from the STL files in this folder.
-# Run from cad_files/:  python3 render_explosion.py exploded_view.png
+# Run from cad_files/:  python3 render_exploded_view.py exploded_view.png
 # Requires: pip install numpy matplotlib trimesh fast_simplification
 #
 # Coordinates are in the frame of bottom.stl (floor at z=0, open side +z).

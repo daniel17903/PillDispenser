@@ -29,4 +29,4 @@ The original Shaztech files were superseded by these modified versions and remov
 
 See `exploded_view.png` for an exploded view. The mechanism positions were derived from a photo of the assembled mechanism (accurate to about 1–2 mm).
 
-`render_explosion.py` regenerates the image (run it from this folder: `python3 render_explosion.py exploded_view.png`).
+`render_exploded_view.py` regenerates the image (run it from this folder: `python3 render_exploded_view.py exploded_view.png`).
