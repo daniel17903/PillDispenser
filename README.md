@@ -2,6 +2,8 @@
 
 A battery-powered, 3D-printed automatic pill dispenser controlled by [Home Assistant](https://www.home-assistant.io/).
 
+> Based on the mechanical design of [Shaztech/Pilldispenser](https://github.com/Shaztech/Pilldispenser), modified and combined with battery-powered ESP32 firmware and a Home Assistant integration.
+
 The device is built around a Seeed Studio XIAO ESP32-S3 and spends almost all of its time in deep sleep. It wakes up once or twice a day, reads its configuration (enabled/disabled, dispense time) from Home Assistant and drops one pill at the configured time by driving a small servo.
 
 <p align="center"><img src="docs/images/dispensing.gif" width="300" alt="The pill dispenser dropping a pill"></p>
