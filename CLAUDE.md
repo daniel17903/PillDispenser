@@ -10,10 +10,15 @@ This is an Arduino sketch project — there is no build system, package manager,
 
 ## Repository layout
 
-- `sketch_sep11a/sketch_sep11a.ino` — main sketch: WiFi/NTP setup, deep-sleep scheduling, and the dispense logic. All work happens in `setup()`; `loop()` is empty because the device deep-sleeps instead of looping.
-- `sketch_sep11a/HaClient.{h,cpp}` — minimal Home Assistant REST API client (`GET /api/states/<entity_id>` with a Bearer token, TLS without certificate verification). Reads `input_boolean` and `input_datetime` helper entities.
-- `sketch_sep11a/Time.{h,cpp}` — small time-of-day class with timezone conversion (Europe/Berlin, DST rules) and `secondsUntilNext()` used for sleep scheduling.
-- `sketch_sep11a/config.dist.h` — template for `config.h` (WiFi credentials, HA host/port/token). The real `config.h` is git-ignored and must exist for the sketch to compile.
+- `firmware/pill_dispenser/pill_dispenser.ino` — main sketch: WiFi/NTP setup, deep-sleep scheduling, and the dispense logic. All work happens in `setup()`; `loop()` is empty because the device deep-sleeps instead of looping.
+- `firmware/pill_dispenser/HaClient.{h,cpp}` — minimal Home Assistant REST API client (`GET /api/states/<entity_id>` with a Bearer token, TLS without certificate verification). Reads `input_boolean` and `input_datetime` helper entities.
+- `firmware/pill_dispenser/Time.{h,cpp}` — small time-of-day class with timezone conversion (Europe/Berlin, DST rules) and `secondsUntilNext()` used for sleep scheduling.
+- `firmware/pill_dispenser/config.example.h` — template for `config.h` (WiFi credentials, HA host/port/token). The real `config.h` is git-ignored and must exist for the sketch to compile.
+- `hardware/` — STL files (`stl/`, mechanism parts in `stl/mechanism/`), parts list, and `render_exploded_view.py`, which regenerates `docs/images/exploded_view.png`.
+- `homeassistant/` — setup of the HA helper entities.
+- `docs/` — wiring (`wiring.md`, `images/wiring.svg`), software flow with Mermaid diagrams (`software.md`), power consumption math (`power-consumption.md`).
+
+The sketch folder and the `.ino` file must keep the same name (Arduino requirement).
 
 ## Library dependencies
 
@@ -26,7 +31,7 @@ ArduinoJson, NTPClient, Timezone, ESP32Servo (ESP32) / Servo (ESP8266), plus the
 - **Double-dispense guard**: if a pill was just dispensed and the next scheduled dispense is less than 6 hours away, it is pushed to the next day. Don't remove this — the RTC timer is inaccurate and can wake up early.
 - **Failure handling is "keep last known value"**: if WiFi or HA is unreachable, the previous configuration from RTC memory is used; a failed WiFi connection sleeps 1 hour and suppresses dispensing on the retry wakeup.
 - **First boot delays 30 s before sleeping** (`bootCount == 1` in `sleepForSeconds`) to leave a window for flashing new firmware — deep sleep makes the USB port unavailable.
-- **Power draw matters**: WiFi is switched off before running the servo, and the servo is powered through a MOSFET on pin D2 that is only enabled during dispensing. Keep awake time minimal; battery-life math is in the README.
+- **Power draw matters**: WiFi is switched off before running the servo, and the servo is powered through a MOSFET on pin D2 that is only enabled during dispensing. Keep awake time minimal; battery-life math is in `docs/power-consumption.md`.
 
 ## Home Assistant integration
 

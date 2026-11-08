@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" width="960" height="560" font-family="Helvetica, Arial, sans-serif" font-size="14">
+  <rect width="960" height="560" fill="#ffffff"/>
+  <text x="480" y="32" text-anchor="middle" font-size="20" font-weight="bold" fill="#222">Pill dispenser – wiring</text>
+
+  <!-- ===== wires (drawn first, components on top) ===== -->
+  <g fill="none" stroke-width="3" stroke-linejoin="round">
+    <!-- battery + to switch -->
+    <path d="M95 230 V70 H165" stroke="#d62728"/>
+    <!-- switched + rail: XIAO BAT+ and servo red -->
+    <path d="M225 70 H850 V120" stroke="#d62728"/>
+    <path d="M290 70 V200 H320" stroke="#d62728"/>
+    <!-- GND rail -->
+    <path d="M95 330 V490 H660 V430" stroke="#222"/>
+    <path d="M290 490 V380 H320" stroke="#222"/>
+    <!-- D1 -> servo signal (orange) -->
+    <path d="M500 200 H560 V170 H780" stroke="#ff8c00"/>
+    <!-- D2 -> MOSFET gate -->
+    <path d="M500 260 H540 V455 H600 V430" stroke="#1f77b4"/>
+    <!-- MOSFET drain (tab) -> servo GND (brown) -->
+    <path d="M630 282 V210 H780" stroke="#8b4513"/>
+  </g>
+  <!-- junction dots -->
+  <circle cx="290" cy="70" r="5" fill="#d62728"/>
+  <circle cx="290" cy="490" r="5" fill="#222"/>
+
+  <!-- ===== battery ===== -->
+  <rect x="40" y="230" width="110" height="100" rx="8" fill="#f3f3f3" stroke="#444" stroke-width="2"/>
+  <text x="95" y="268" text-anchor="middle" font-weight="bold">LiPo</text>
+  <text x="95" y="288" text-anchor="middle">3.7 V</text>
+  <text x="95" y="306" text-anchor="middle">3000 mAh</text>
+  <text x="108" y="250" font-weight="bold" fill="#d62728">+</text>
+  <text x="108" y="324" font-weight="bold">−</text>
+
+  <!-- ===== switch ===== -->
+  <circle cx="170" cy="70" r="5" fill="#fff" stroke="#444" stroke-width="2"/>
+  <circle cx="220" cy="70" r="5" fill="#fff" stroke="#444" stroke-width="2"/>
+  <line x1="174" y1="67" x2="214" y2="48" stroke="#444" stroke-width="3"/>
+  <text x="195" y="100" text-anchor="middle">On/off switch</text>
+
+  <!-- ===== XIAO ESP32-S3 ===== -->
+  <rect x="320" y="150" width="180" height="270" rx="10" fill="#e8f0fb" stroke="#2b5797" stroke-width="2"/>
+  <text x="410" y="290" text-anchor="middle" font-weight="bold">Seeed XIAO</text>
+  <text x="410" y="310" text-anchor="middle" font-weight="bold">ESP32-S3</text>
+  <text x="330" y="205">BAT+</text>
+  <text x="330" y="385">BAT−</text>
+  <text x="490" y="205" text-anchor="end">D1</text>
+  <text x="490" y="265" text-anchor="end">D2</text>
+  <text x="410" y="405" text-anchor="middle" font-size="11" fill="#555">battery pads on the underside</text>
+
+  <!-- wire labels -->
+  <text x="640" y="162" font-size="12" fill="#c06a00">signal (orange)</text>
+  <text x="680" y="202" font-size="12" fill="#8b4513">GND (brown)</text>
+  <text x="862" y="100" font-size="12" fill="#d62728">+ (red)</text>
+  <text x="548" y="350" font-size="12" fill="#1f77b4" transform="rotate(-90 548 350)" text-anchor="middle">gate</text>
+
+  <!-- ===== MOSFET IRLB8721 (TO-220, front view) ===== -->
+  <rect x="595" y="282" width="70" height="22" fill="#bbb" stroke="#444" stroke-width="2"/>
+  <circle cx="630" cy="293" r="6" fill="#fff" stroke="#444" stroke-width="1.5"/>
+  <rect x="585" y="304" width="90" height="60" fill="#333" stroke="#222" stroke-width="2"/>
+  <text x="630" y="330" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">IRLB8721</text>
+  <text x="630" y="354" text-anchor="middle" fill="#fff" font-size="11">G   D   S</text>
+  <g stroke="#999" stroke-width="5">
+    <line x1="600" y1="364" x2="600" y2="430"/>
+    <line x1="630" y1="364" x2="630" y2="430"/>
+    <line x1="660" y1="364" x2="660" y2="430"/>
+  </g>
+  <text x="690" y="300" font-size="12" fill="#555">drain = middle leg = tab</text>
+  <text x="690" y="400" font-size="12" fill="#555">N-channel, low-side switch</text>
+  <text x="690" y="416" font-size="12" fill="#555">legs left→right: Gate, Drain, Source</text>
+
+  <!-- ===== Servo SG90 ===== -->
+  <rect x="780" y="120" width="140" height="110" rx="6" fill="#2f5fd0" stroke="#1d3c8a" stroke-width="2"/>
+  <circle cx="885" cy="150" r="14" fill="#fff" stroke="#1d3c8a" stroke-width="2"/>
+  <text x="830" y="195" text-anchor="middle" fill="#fff" font-weight="bold">Servo</text>
+  <text x="830" y="213" text-anchor="middle" fill="#fff">SG90</text>
+
+  <!-- GND rail label -->
+  <text x="380" y="512" text-anchor="middle" font-size="12" fill="#555">GND</text>
+  <text x="560" y="62" text-anchor="middle" font-size="12" fill="#555">battery + after the switch</text>
+</svg>

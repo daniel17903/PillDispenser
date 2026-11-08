@@ -1,83 +1,50 @@
 # PillDispenser
 
-## Configuration
+A battery-powered, 3D-printed automatic pill dispenser controlled by [Home Assistant](https://www.home-assistant.io/).
 
-The dispenser is configured in two places: a local `config.h` file that is compiled into the firmware, and two Home Assistant helper entities that are fetched over the network on every wakeup.
+The device is built around a Seeed Studio XIAO ESP32-S3 and spends almost all of its time in deep sleep. It wakes up once or twice a day, reads its configuration (enabled/disabled, dispense time) from Home Assistant and drops one pill at the configured time by driving a small servo.
 
-### Local configuration (`config.h`)
+![Exploded view](docs/images/exploded_view.png)
 
-Copy `sketch_sep11a/config.dist.h` to `sketch_sep11a/config.h` and fill in your values before flashing:
+> **Disclaimer:** This is a hobby project, not a medical device. There is no guarantee that a pill is dispensed on time or at all. Don't rely on it for medication where a missed or double dose is dangerous.
 
-| Constant   | Description                                                        |
-| ---------- | ------------------------------------------------------------------ |
-| `ssid`     | WiFi network name                                                  |
-| `password` | WiFi password                                                      |
-| `haToken`  | Home Assistant long-lived access token (used as a Bearer token)    |
-| `haHost`   | Hostname of the Home Assistant instance (HTTPS, certificate is not verified) |
-| `haPort`   | Port of the Home Assistant instance (usually `8123`)               |
+## Features
 
-### Home Assistant entities
+- Dispenses one pill per day at a time set in Home Assistant
+- Can be switched on and off from Home Assistant (e.g. from your phone)
+- Runs for a long time on a single 3000 mAh LiPo: about 14 µA in deep sleep, ~32 µA on average when waking once a day (see [power consumption](docs/power-consumption.md))
+- Keeps working with the last known configuration if WiFi or Home Assistant is unreachable
+- Fully 3D-printable housing and mechanism, plus a few cheap standard parts
 
-On every wakeup the dispenser reads the following helper entities via the [HA REST API](https://developers.home-assistant.io/docs/api/rest/) (`GET /api/states/<entity_id>`). Create them in Home Assistant under *Settings → Devices & services → Helpers*:
+## How it works
 
-| Entity                                | Type      | Purpose                                             |
-| ------------------------------------- | --------- | --------------------------------------------------- |
-| `input_boolean.pill_dispense_enabled` | Toggle    | Master switch — when `off`, no pill is dispensed    |
-| `input_datetime.pill_dispense_time`   | Date/Time (time only) | Time of day at which a pill is dispensed |
+1. The device wakes up from deep sleep, connects to WiFi and gets the current time via NTP.
+2. It reads `input_boolean.pill_dispense_enabled` and `input_datetime.pill_dispense_time` from Home Assistant.
+3. If this was a dispense wakeup and dispensing is enabled, it switches WiFi off, powers the servo through a MOSFET and turns the pill ring by one slot.
+4. It goes back to deep sleep until the next dispense time or the daily configuration check at 06:00, whichever comes first.
 
-If an entity cannot be fetched (e.g. HA is unreachable), the dispenser keeps the last successfully loaded value, which is preserved in RTC memory across deep sleep. The defaults after a cold boot are `enabled = true` and `08:30:00`.
+Details, including a sequence diagram: [docs/software.md](docs/software.md).
 
-### How the wakeup cycle works
+## Getting started
 
-The device spends almost all of its time in deep sleep and only wakes up briefly:
+1. **Print and assemble the hardware:** [hardware/README.md](hardware/README.md)
+2. **Wire the electronics:** [docs/wiring.md](docs/wiring.md)
+3. **Create the Home Assistant helpers:** [homeassistant/README.md](homeassistant/README.md)
+4. **Configure, build and flash the firmware:** [firmware/README.md](firmware/README.md)
 
-1. On wakeup it connects to WiFi, gets the current time via NTP (timezone Europe/Berlin) and loads the two entities from Home Assistant. If WiFi fails, it retries in one hour without dispensing.
-2. If this wakeup was scheduled as a dispense wakeup (or the device was just powered on / reset) **and** `pill_dispense_enabled` is `on`, a pill is dispensed by driving the servo once.
-3. It then goes back to deep sleep until whichever comes first: the next `pill_dispense_time` or the daily configuration-loading time (06:00), where it re-reads the entities without dispensing. Configuration changes in Home Assistant therefore take effect at the next wakeup, not immediately.
+## Repository layout
 
-To avoid double dispensing (e.g. after a reboot shortly before the scheduled time), a dispense scheduled less than 6 hours after a pill was just dispensed is skipped and moved to the next day.
+| Path | Contents |
+| ---- | -------- |
+| [`firmware/`](firmware/) | Arduino sketch for the XIAO ESP32-S3 |
+| [`hardware/`](hardware/) | STL files, parts list, exploded-view render script |
+| [`homeassistant/`](homeassistant/) | Home Assistant helper setup |
+| [`docs/`](docs/) | Wiring, software flow, power consumption, images |
 
-Note that a cold boot (power cycle or reset button) always counts as a dispense wakeup: as long as `pill_dispense_enabled` is `on`, a pill is dispensed immediately after the configuration is loaded.
+## Credits
 
-## Hardware
+The mechanical design is based on [Shaztech/Pilldispenser](https://github.com/Shaztech/Pilldispenser). The STL files in this repository are modified versions of that design.
 
-[Seeed Studio XIAO ESP32-S3](https://www.seeedstudio.com/Seeed-Studio-XIAO-ESP32S3-Pre-Soldered-p-6334.html)
+## License
 
-## Power consumption
-
-- during deep sleep: 14μA
-- no sleep, no wifi: 32mA
-- with wifi receiving: 90mA
-- with servo running: 200mA (<3s per pill dispense)
-
-### Power usage:
-
-Per day:
-
-- 10s on with wifi (for connecting to wifi and getting the configuration and current time)
-- 3s on with servo
-- 86387s in deep sleep
-
-#### Waking up 1 time / day
-
-(10 x 90.000μA + 3 x 200.000μA + 86387 x 14μA) / 86400 = 31,6μA on average
-
-3000mAh / 31,6 x 10 ^ -3 = 94.963,7h (11 years)
-
--> A 3000mAh battery would last about 94.963,7h (11 years) when waking up 1 time / day
-
-#### Waking up 10 times / day
-
-(100 x 90.000μA + 30 x 200.000μA + 86270 x 14μA) / 86400 = 187,6μA on average
-
-3000mAh / 187,6 x 10 ^ -3 = 15.991,5h (1,8 years)
-
--> A 3000mAh battery would last about 15.991,5h (1,8 years) when waking up 10 time / day
-
-#### Waking up 1 time / day for 4h
-
-(14400 x 90.000μA + 3 x 200.000μA + 71997 x 14μA) / 86400 = 15mA on average
-
-3000mAh / 15 = 200h (8,3d days)
-
--> A 3000mAh battery would last about 200h (8,3d days) when waking up 1 time / day and staying on for 4h
+[MIT](LICENSE)
