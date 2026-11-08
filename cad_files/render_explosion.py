@@ -1,5 +1,5 @@
-# Renders explosionszeichnung.png from the STL files in this folder.
-# Run from cad_files/:  python3 render_explosion.py explosionszeichnung.png
+# Renders exploded_view.png from the STL files in this folder.
+# Run from cad_files/:  python3 render_explosion.py exploded_view.png
 # Requires: pip install numpy matplotlib trimesh fast_simplification
 #
 # Coordinates are in the frame of bottom.stl (floor at z=0, open side +z).
@@ -18,7 +18,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
-OUT = sys.argv[1] if len(sys.argv) > 1 else 'explosionszeichnung.png'
+OUT = sys.argv[1] if len(sys.argv) > 1 else 'exploded_view.png'
 BC = np.array([0.5, 3.48])  # axis of bottom.stl
 LIGHT = np.array([0.35, -0.55, 0.75]) / np.linalg.norm([0.35, -0.55, 0.75])
 
@@ -58,7 +58,7 @@ POSES = {  # part: (local->bottom rotation, yaw, (x, y) of bbox centre, z of bot
     5: (FLIP, yaw5, centre_for((0, 5.93), S3, yaw5, flip=True), 14.5),
     6: (np.eye(3), yaw26, centre_for((0, -4.0), S1A, yaw26), 14.5),
 }
-NAMES = {1: 'Servohebel', 2: 'Hebel', 3: 'Klinke', 4: 'Rastblock', 5: 'Halter für P10', 6: 'Platte 4 mm'}
+NAMES = {1: 'Servo horn', 2: 'Lever', 3: 'Pawl', 4: 'Detent block', 5: 'P10 retainer', 6: 'Plate 4 mm'}
 MCOL = {1: '#e07b39', 2: '#e0a339', 3: '#c9b52e', 4: '#4fa3a5', 5: '#d46a8c', 6: '#9a6cc6'}
 # explosion offsets (dx, dy, dz) per element
 OFF = {1: (-18, 40, 36), 2: (0, 0, 32), 3: (0, 0, 32), 4: (26, 0, 24), 5: (0, 0, 74), 6: (0, 0, 52),
@@ -159,8 +159,8 @@ foot = load('foot.stl')
 mech = {i: place(load(f'Assembly_parts/part_{i}.stl', 5000), *POSES[i]) for i in POSES}
 
 fig = plt.figure(figsize=(18, 12.5))
-fig.text(0.5, 0.965, 'Pillenspender – Explosionszeichnung', ha='center', fontsize=20, weight='bold')
-fig.text(0.5, 0.94, 'Reihenfolge: ① Boden  →  ② Mechanik  →  ③ Fächerring  →  ④ Deckel  →  ⑤ in den Standfuß stellen',
+fig.text(0.5, 0.965, 'Pill dispenser – exploded view', ha='center', fontsize=20, weight='bold')
+fig.text(0.5, 0.94, 'Order: ① Bottom  →  ② Mechanism  →  ③ Pill ring  →  ④ Lid  →  ⑤ Place in the stand',
          ha='center', fontsize=12, color='#444')
 
 # ---------- main view: bottom + exploded mechanism ----------
@@ -212,27 +212,27 @@ callouts = [
     (np.r_[-25, 59.5, 17 + 36], (-5, 85, 95), 'P8 Servo SG90 + 2× S1', '#3c4fc4'),
     (np.r_[S1A, 19 + 92], (-75, -20, 124), 'S1 (2×)', '#444'),
     (np.r_[S3, 21 + 96], (35, -20, 126), 'S1', '#444'),
-    (np.r_[P11, 14.5 + 78], (-100, 15, 112), 'P11 Ø1,5×12', '#a0662a'),
-    (np.r_[PIN, 16 + 16], (25, -60, 45), 'P10 Ø1,5×14', '#a0662a'),
-    (np.r_[P11, 10 + 20], (-105, -30, 40), 'P12 Drehfeder', '#444'),
-    (np.r_[-30.5, -22, 36], (-55, -75, 50), 'P9 Feder', '#444'),
-    (np.r_[64, 4, 32], (90, 30, 55), 'P9 Feder', '#444'),
-    (np.r_[MAGNETS[1], 46], (85, 60, 75), 'Magnete (4×)', '#555'),
+    (np.r_[P11, 14.5 + 78], (-100, 15, 112), 'P11 Ø1.5×12', '#a0662a'),
+    (np.r_[PIN, 16 + 16], (25, -60, 45), 'P10 Ø1.5×14', '#a0662a'),
+    (np.r_[P11, 10 + 20], (-105, -30, 40), 'P12 Torsion spring', '#444'),
+    (np.r_[-30.5, -22, 36], (-55, -75, 50), 'P9 Spring', '#444'),
+    (np.r_[64, 4, 32], (90, 30, 55), 'P9 Spring', '#444'),
+    (np.r_[MAGNETS[1], 46], (85, 60, 75), 'Magnets (4×)', '#555'),
 ]
 for a, p, t, c in callouts:
     callout(ax, a, p, t, c)
-callout(ax, np.r_[60, -60, 10], (75, -95, 10), '① Boden (bottom.stl)', size=11)
-fig.text(0.03, 0.89, '② Mechanik', fontsize=13, weight='bold')
+callout(ax, np.r_[60, -60, 10], (75, -95, 10), '① Bottom (bottom.stl)', size=11)
+fig.text(0.03, 0.89, '② Mechanism', fontsize=13, weight='bold')
 for k, i in enumerate(POSES):
     fig.text(0.03, 0.865 - k * 0.024, '■', color=MCOL[i], fontsize=14)
     fig.text(0.05, 0.867 - k * 0.024, f'part_{i}  {NAMES[i]}', fontsize=10.5)
-fig.text(0.03, 0.71, 'Gestrichelte Linien: Einbauort im Boden', fontsize=9.5, color='#666')
+fig.text(0.03, 0.71, 'Dashed lines: mounting position in the bottom', fontsize=9.5, color='#666')
 
 # ---------- ring over the bottom ----------
 ax = fig.add_axes([0.62, 0.62, 0.19, 0.30], projection='3d'); ax.set_proj_type('ortho')
 draw(ax, [(bottom, '#7b97bd'), (moved(ring, [0, 0, 70]), '#8fb3a3')], [(-100, 100), (-100, 100), (-10, 110)], elev=30, azim=-68)
 guide(ax, [*BC, 25], [*BC, 70])
-fig.text(0.715, 0.62, '③ Fächerring (tray_parts.stl)\nwird um die Mechanik in den\nBoden ① gelegt, Verzahnung innen',
+fig.text(0.715, 0.62, '③ Pill ring (tray_parts.stl)\nplaced into the bottom ① around\nthe mechanism, teeth facing inwards',
          ha='center', fontsize=10.5)
 
 # ---------- lid with magnets ----------
@@ -241,7 +241,7 @@ lid_mags = [cyl([x, y, 6], [x, y, 8], 2.0, 20) for x, y in MAGNETS]
 draw(ax, [(lid, '#a7a7c9')] + [(m, '#8c8c96') for m in lid_mags], [(-100, 100), (-100, 100), (-10, 70)], elev=-35, azim=-68)
 for x, y in MAGNETS:
     guide(ax, [x, y, 8], [x, y, 20])
-fig.text(0.905, 0.62, '④ Deckel (top.stl), von unten\n4 Magnete in die Stifte,\nhalten am Boden ①', ha='center', fontsize=10.5)
+fig.text(0.905, 0.62, '④ Lid (top.stl), seen from below\n4 magnets in the pins,\nhold it on the bottom ①', ha='center', fontsize=10.5)
 
 # ---------- standing in the foot ----------
 ax = fig.add_axes([0.68, 0.17, 0.30, 0.42], projection='3d'); ax.set_proj_type('persp', focal_length=0.5)
@@ -251,16 +251,16 @@ fv = foot.vertices
 fm = trimesh.Trimesh(np.c_[-fv[:, 0] + 7 + BC[0], -fv[:, 1] + 6, fv[:, 2] - 25 + (BC[1] - 95.5) - 40], foot.faces)
 draw(ax, [(disc, '#9fb0c8'), (fm, '#9c8466')], [(-110, 110), (-110, 110), (-175, 105)], elev=15, azim=-55)
 ax.plot([BC[0]] * 2, [11, 11], [BC[1] - 95.5 - 3, fm.bounds[1][2] + 3], ':', color='#555', lw=1.2)
-fig.text(0.83, 0.17, '⑤ Standfuß (foot.stl): Rad hochkant,\nAuslass-Schlitz nach unten', ha='center', fontsize=10.5)
+fig.text(0.83, 0.17, '⑤ Stand (foot.stl): wheel upright,\noutlet slot facing down', ha='center', fontsize=10.5)
 
 # ---------- hardware strip ----------
 hw = fig.add_axes([0.03, 0.015, 0.94, 0.10]); hw.set_xlim(0, 100); hw.set_ylim(0, 11); hw.axis('off')
 hw.add_patch(plt.Rectangle((0, 0), 100, 11, fc='#f6f6f6', ec='#ccc'))
-hw.text(1, 9.3, 'Kleinteile', fontsize=12, weight='bold')
-rows = [('P8', 'Servo SG90', '1×'), ('S1', 'Torx #2 × 3/8"', '5× (2 Servo, 3 Mechanik)'),
-        ('P9', 'Kugelschreiberfeder 0,4×4,5×18', '2×'), ('P10', 'Stab Ø1,5 × 14 mm', '1×'),
-        ('P11', 'Stab Ø1,5 × 12 mm', '1×'), ('P12', 'Drehfeder (McMaster 9271K71)', '1×'),
-        ('', 'Magnet rund Ø4 × 2 mm', '4× Boden, 4× Deckel')]
+hw.text(1, 9.3, 'Hardware', fontsize=12, weight='bold')
+rows = [('P8', 'Servo SG90', '1×'), ('S1', 'Torx #2 × 3/8"', '5× (2 servo, 3 mechanism)'),
+        ('P9', 'Ball pen spring 0.4×4.5×18', '2×'), ('P10', 'Rod Ø1.5 × 14 mm', '1×'),
+        ('P11', 'Rod Ø1.5 × 12 mm', '1×'), ('P12', 'Torsion spring (McMaster 9271K71)', '1×'),
+        ('', 'Round magnet Ø4 × 2 mm', '4× bottom, 4× lid')]
 for k, (code, name, n) in enumerate(rows):
     x = 1 + k * 14.1
     hw.text(x, 5.6, code, fontsize=11, weight='bold')
