@@ -1,6 +1,6 @@
-# Renders exploded_view.png from the STL files in this folder.
-# Run from cad_files/:  python3 render_exploded_view.py exploded_view.png
-# Requires: pip install numpy matplotlib trimesh fast_simplification
+# Renders docs/images/exploded_view.png from the STL files in hardware/stl/.
+# Run from anywhere:  python3 hardware/render_exploded_view.py [output.png]
+# Requires: pip install -r hardware/requirements.txt
 #
 # Coordinates are in the frame of bottom.stl (floor at z=0, open side +z).
 # Mechanism poses come from a photo of the assembled mechanism (camera pose
@@ -11,6 +11,7 @@
 #     whose second hole (14 mm away) takes the third S1 screw
 #   - servo screw holes, spring bores and magnet recesses are taken from bottom.stl
 import sys
+from pathlib import Path
 import numpy as np
 import trimesh
 import matplotlib
@@ -18,7 +19,9 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
-OUT = sys.argv[1] if len(sys.argv) > 1 else 'exploded_view.png'
+HERE = Path(__file__).resolve().parent
+STL_DIR = HERE / 'stl'
+OUT = sys.argv[1] if len(sys.argv) > 1 else str(HERE.parent / 'docs' / 'images' / 'exploded_view.png')
 BC = np.array([0.5, 3.48])  # axis of bottom.stl
 LIGHT = np.array([0.35, -0.55, 0.75]) / np.linalg.norm([0.35, -0.55, 0.75])
 
@@ -67,7 +70,7 @@ OFF = {1: (-18, 40, 36), 2: (0, 0, 32), 3: (0, 0, 32), 4: (26, 0, 24), 5: (0, 0,
 
 
 def load(f, n=None):
-    m = trimesh.load(f, force='mesh')
+    m = trimesh.load(STL_DIR / f, force='mesh')
     if n and len(m.faces) > n:
         m = m.simplify_quadric_decimation(face_count=n)
     return m
@@ -153,10 +156,10 @@ def guide(ax, a, b):
 
 
 bottom = load('bottom.stl')
-ring = load('tray_parts.stl'); ring.apply_translation([BC[0] - 3.15, BC[1] + 0.76, 0])
+ring = load('tray.stl'); ring.apply_translation([BC[0] - 3.15, BC[1] + 0.76, 0])
 lid = load('top.stl'); lid.apply_transform(np.diag([-1, 1, -1, 1])); lid.apply_translation([BC[0] + 0.17, BC[1] + 1.37, 22])
 foot = load('foot.stl')
-mech = {i: place(load(f'Assembly_parts/part_{i}.stl', 5000), *POSES[i]) for i in POSES}
+mech = {i: place(load(next((STL_DIR / 'mechanism').glob(f'part_{i}_*.stl')).relative_to(STL_DIR), 5000), *POSES[i]) for i in POSES}
 
 fig = plt.figure(figsize=(18, 12.5))
 fig.text(0.5, 0.965, 'Pill dispenser – exploded view', ha='center', fontsize=20, weight='bold')
@@ -232,7 +235,7 @@ fig.text(0.03, 0.71, 'Dashed lines: mounting position in the bottom', fontsize=9
 ax = fig.add_axes([0.62, 0.62, 0.19, 0.30], projection='3d'); ax.set_proj_type('ortho')
 draw(ax, [(bottom, '#7b97bd'), (moved(ring, [0, 0, 70]), '#8fb3a3')], [(-100, 100), (-100, 100), (-10, 110)], elev=30, azim=-68)
 guide(ax, [*BC, 25], [*BC, 70])
-fig.text(0.715, 0.62, '③ Pill ring (tray_parts.stl)\nplaced into the bottom ① around\nthe mechanism, teeth facing inwards',
+fig.text(0.715, 0.62, '③ Pill ring (tray.stl)\nplaced into the bottom ① around\nthe mechanism, teeth facing inwards',
          ha='center', fontsize=10.5)
 
 # ---------- lid with magnets ----------
