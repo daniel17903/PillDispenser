@@ -32,6 +32,21 @@ input_datetime:
     initial: "08:30:00"
 ```
 
+## Automatically following the phone's next alarm
+
+[`automation_next_alarm.yaml`](automation_next_alarm.yaml) sets `input_datetime.pill_dispense_time` to **30 minutes after the phone's next alarm**, so the pill is ready shortly after you get up.
+
+1. Install the [Home Assistant Companion app](https://companion.home-assistant.io/) on your phone and enable the **Next alarm** sensor (*Settings → Companion app → Manage sensors*). This sensor is only available on Android.
+2. Create a new automation, switch to *Edit in YAML* and paste the file's contents.
+3. Replace `sensor.my_phone_next_alarm` with your phone's sensor, e.g. `sensor.pixel_8_next_alarm`.
+
+If no alarm is set, the sensor is `unavailable` and the automation keeps the previous dispense time.
+
+Caveats:
+
+- The dispenser only reads the new time at its next wakeup (see below), so the alarm must be set before 06:00 to take effect the same morning.
+- When an alarm rings, the sensor jumps to the following alarm and the automation updates the dispense time right away, possibly before that day's pill has been dispensed. The double-dispense guard prevents a second pill as long as the new time is less than 6 hours after the old one. If the next alarm is much later (e.g. 07:00 on a weekday followed by 14:00), the device dispenses at the old time and **again** at the new time on the same day.
+
 ## Access token
 
 Create a long-lived access token under *your profile → Security → Long-lived access tokens* and put it in `haToken` in `firmware/pill_dispenser/config.h`. Ideally create a separate Home Assistant user for the dispenser.

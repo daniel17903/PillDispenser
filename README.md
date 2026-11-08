@@ -12,6 +12,7 @@ The device is built around a Seeed Studio XIAO ESP32-S3 and spends almost all of
 
 - Dispenses one pill per day at a time set in Home Assistant
 - Can be switched on and off from Home Assistant (e.g. from your phone)
+- Optional: dispense time follows the next alarm on your phone (+30 min) via a [Home Assistant automation](homeassistant/README.md#automatically-following-the-phones-next-alarm)
 - Runs for a long time on a single 3000 mAh LiPo: about 14 µA in deep sleep, ~32 µA on average when waking once a day (see [power consumption](docs/power-consumption.md))
 - Keeps working with the last known configuration if WiFi or Home Assistant is unreachable
 - Fully 3D-printable housing and mechanism, plus a few cheap standard parts

@@ -1,0 +1,20 @@
+# Sets the pill dispense time to 30 minutes after the phone's next alarm.
+# Replace sensor.my_phone_next_alarm with the next-alarm sensor of your phone
+# (Home Assistant Companion app for Android).
+alias: Pill dispenser – follow next alarm
+mode: single
+triggers:
+  - trigger: state
+    entity_id: sensor.my_phone_next_alarm
+conditions:
+  # no alarm set: keep the previous dispense time
+  - condition: template
+    value_template: "{{ as_datetime(states('sensor.my_phone_next_alarm'), none) is not none }}"
+actions:
+  - action: input_datetime.set_datetime
+    target:
+      entity_id: input_datetime.pill_dispense_time
+    data:
+      time: >
+        {{ (as_local(as_datetime(states('sensor.my_phone_next_alarm')))
+            + timedelta(minutes=30)).strftime('%H:%M:%S') }}

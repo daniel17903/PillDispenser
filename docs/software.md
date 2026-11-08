@@ -4,51 +4,26 @@ The firmware runs once per wakeup. Everything happens in `setup()` in [`pill_dis
 
 ## Sequence: a typical day
 
-The user changes the configuration on a smartphone at any time. The dispenser only sees the change at its next wakeup.
+The phone reports its next alarm to Home Assistant, and an automation sets the dispense time to 30 minutes after that alarm (see [homeassistant/README.md](../homeassistant/README.md)). The dispenser only picks the change up the next time it wakes up.
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    actor User as User (smartphone)
+    actor Phone as Smartphone
     participant HA as Home Assistant
-    participant ESP as Pill dispenser (ESP32-S3)
-    participant NTP as NTP server
+    participant ESP as Pill dispenser
 
-    Note over ESP: deep sleep (~14 µA)
+    Phone->>HA: next alarm: 07:00
+    HA->>HA: automation sets pill_dispense_time = 07:30
 
-    User->>HA: set pill_dispense_time = 08:30<br/>pill_dispense_enabled = on
-    Note over HA: stores helper states<br/>(device is asleep, not notified)
+    Note over ESP: deep sleep
+    ESP->>HA: 06:00 wakeup: read configuration
+    HA-->>ESP: enabled, 07:30
+    Note over ESP: deep sleep until 07:30
 
-    rect rgb(235, 242, 255)
-    Note over ESP: 06:00 wakeup: configuration only<br/>(dispenseOnWakeUp = false)
-    ESP->>ESP: connect to WiFi
-    ESP->>NTP: get current time
-    NTP-->>ESP: epoch time → Europe/Berlin
-    ESP->>HA: GET /api/states/input_boolean.pill_dispense_enabled
-    HA-->>ESP: "on"
-    ESP->>HA: GET /api/states/input_datetime.pill_dispense_time
-    HA-->>ESP: 08:30:00
-    ESP->>ESP: WiFi off, no dispensing
-    ESP->>ESP: next wakeup = min(08:30, 06:00 tomorrow) → 08:30<br/>dispenseOnWakeUp = true
-    end
-
-    Note over ESP: deep sleep until 08:30
-
-    rect rgb(235, 255, 240)
-    Note over ESP: 08:30 wakeup: dispense<br/>(dispenseOnWakeUp = true)
-    ESP->>ESP: connect to WiFi
-    ESP->>NTP: get current time
-    ESP->>HA: GET both helper states
-    HA-->>ESP: on, 08:30:00
-    ESP->>ESP: WiFi off
-    ESP->>ESP: D2 high (MOSFET → servo power on)<br/>servo 0° → 180°, D2 low
-    ESP->>ESP: next dispense in < 6 h? → push to tomorrow<br/>next wakeup = 06:00 tomorrow
-    end
-
-    Note over ESP: deep sleep until 06:00
-
-    User->>HA: pill_dispense_enabled = off (going on vacation)
-    Note over ESP: 06:00: reads "off" → no more pills<br/>until it is switched on again
+    ESP->>HA: 07:30 wakeup: read configuration
+    HA-->>ESP: enabled, 07:30
+    ESP->>ESP: dispense pill
+    Note over ESP: deep sleep until 06:00 tomorrow
 ```
 
 ## Flowchart: one wakeup
