@@ -10,6 +10,13 @@ Based on https://github.com/Shaztech/Pilldispenser
 - P11 - Ø1.5mm x 12mm rod (I used Aluminium TIG rod, you can use anything that fit) [1x per tray]
 - P12 - Torsion spring - McMaster #9271K71 [1x per tray], on P11, presses part_3 against the pill ring
 
+# Electronics (not shown in the exploded view)
+
+- Seeed Studio XIAO ESP32S3 (dual-core 2.4 GHz, Wi-Fi, BLE 5.0, battery charging supported) [1x]
+- LiPo battery 3.7 V, 3000 mAh, approx. 65 x 35 x 20 mm [1x]
+- IRLB8721 MOSFET (switches the servo power) [1x]
+- On/off switch [1x]
+
 # Files
 
 The original Shaztech files were superseded by these modified versions and removed:
