@@ -3,7 +3,7 @@ Based on https://github.com/Shaztech/Pilldispenser
 # Required parts:
 
 - P8 - SG90 Servo 180° PWM Analog (blue type is fine) [1x per tray], fixed with 2x S1
-- Round magnets Ø4 x 2mm (recesses in the bottom are Ø4.1 x 2mm) [4x bottom, 4x lid]
+- Round magnets Ø4 x 2mm [4x bottom, 4x lid]
 - P9 - Ball pen springs (0.4x4.5x18mm) [2x per tray: one under the lever (part_2), one behind part_4]
 - S1 - Torx Screws #2 x 3/8" - McMaster #99512A159 [5x per tray: 2x servo, 2x part_6/part_2, 1x part_5]
 - P10 - Ø1.5mm x 14mm rod (I used Aluminium TIG rod, you can use anything that fit) [1x per tray]
