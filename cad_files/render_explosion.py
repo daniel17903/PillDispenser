@@ -54,7 +54,7 @@ POSES = {  # part: (local->bottom rotation, yaw, (x, y) of bbox centre, z of bot
     1: (UPRIGHT, 0.0, (-43.8, 11.6), 7.5),
     2: (np.eye(3), yaw2, centre_for((-1.62, 7.5), S1A, yaw2), 2.5),
     3: (np.eye(3), yaw3, centre_for((6.04, -1.8), P11, yaw3), 2.5),
-    4: (np.eye(3), -90.0, (60.4, 4.1), 2.0),
+    4: (np.eye(3), 90.0, (60.4, 3.9), 2.0),
     5: (FLIP, yaw5, centre_for((0, 5.93), S3, yaw5, flip=True), 14.5),
     6: (np.eye(3), yaw26, centre_for((0, -4.0), S1A, yaw26), 14.5),
 }
