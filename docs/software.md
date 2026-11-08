@@ -70,6 +70,7 @@ Variables marked `RTC_DATA_ATTR` live in RTC memory. They survive deep sleep but
 
 | Situation | Behaviour |
 | --------- | --------- |
-| WiFi not connected after 60 × 500 ms | Sleep 1 h, then try again **without** dispensing |
+| WiFi not connected after 60 × 500 ms | Sleep 1 h, then try again **without** dispensing. A dispense wakeup that hits a WiFi failure skips that pill |
 | Home Assistant unreachable or invalid response | Keep the last known value from RTC memory |
 | RTC timer wakes up early | Covered by the 6 h double-dispense guard |
+| Dispense time changed in Home Assistant | Not fully covered: the 6 h guard only applies to the wakeup right after a dispense, not to later configuration wakeups. See [when changes take effect](../homeassistant/README.md#when-changes-take-effect) |

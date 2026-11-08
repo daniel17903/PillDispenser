@@ -55,6 +55,8 @@ Create a long-lived access token under *your profile → Security → Long-lived
 
 The device is unreachable while it's in deep sleep. Changes in Home Assistant are picked up at the **next wakeup**: either the next dispense time or the daily configuration check at 06:00.
 
-Example: the device is set to dispense at 08:30 and sleeps after the 06:00 check. You change the time to 20:00 at 07:00. The device still wakes up at 08:30 (it doesn't know about the change yet), dispenses, reads the new time and sleeps until 20:00, where it dispenses **again**. Changing the time on the same day can therefore cause two pills in one day. The double-dispense guard only prevents a second dispense within 6 hours of the previous one. To be safe, change the time after that day's pill has been dispensed, or turn dispensing off for that day.
+Example: the device is set to dispense at 08:30 and sleeps after the 06:00 check. You change the time to 20:00 at 07:00. The device still wakes up at 08:30 (it doesn't know about the change yet), dispenses, reads the new time and sleeps until 20:00, where it dispenses **again**. Changing the time on the same day can therefore cause two pills in one day.
+
+The 6-hour double-dispense guard doesn't fully prevent this. It is only checked on the wakeup right after a dispense, and the firmware doesn't remember when the last pill was dispensed. Example: the device dispenses at 04:00 and you change the time to 08:00 at 05:00. The 06:00 configuration check reads 08:00 and the device dispenses again at 08:00, only 4 hours later. If a second pill would be a problem, turn dispensing off before changing the time and back on after the new time has passed.
 
 If an entity cannot be fetched, the device keeps the last successfully loaded value. The defaults after a cold boot are `enabled = on` and `08:30:00`.

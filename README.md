@@ -14,7 +14,7 @@ The device is built around a Seeed Studio XIAO ESP32-S3 and spends almost all of
 - Can be switched on and off from Home Assistant (e.g. from your phone)
 - Optional: dispense time follows the next alarm on your phone (+30 min) via a [Home Assistant automation](homeassistant/README.md#automatically-following-the-phones-next-alarm)
 - Runs for a long time on a single 3000 mAh LiPo: about 14 µA in deep sleep, ~32 µA on average when waking once a day (see [power consumption](docs/power-consumption.md))
-- Keeps working with the last known configuration if WiFi or Home Assistant is unreachable
+- Keeps the last known configuration if Home Assistant is unreachable. Without WiFi it doesn't dispense and retries every hour (see [failure handling](docs/software.md#failure-handling))
 - Fully 3D-printable housing and mechanism, plus a few cheap standard parts
 
 ## How it works

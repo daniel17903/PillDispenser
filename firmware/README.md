@@ -55,7 +55,7 @@ arduino-cli upload --fqbn esp32:esp32:XIAO_ESP32S3 -p /dev/ttyACM0 firmware/pill
 
 The USB port is not available while the ESP32 is in deep sleep. After a cold boot (switch off and on, or press reset) the firmware waits **30 seconds** before its first deep sleep, so you can upload new firmware in that window.
 
-**Note:** a cold boot always dispenses a pill right away if dispensing is enabled in Home Assistant. Turn `input_boolean.pill_dispense_enabled` off before power-cycling the device just to flash it.
+**Note:** a cold boot dispenses a pill right away. Turning `input_boolean.pill_dispense_enabled` off in Home Assistant prevents this only if the device can actually read it: after a cold boot the enabled state defaults to `on`, so if WiFi connects but the Home Assistant request fails, the servo runs anyway. To be sure no pill is dispensed while flashing, disconnect the servo or take the pill ring out first.
 
 If the board doesn't show up at all, hold the **BOOT** button while plugging in USB to enter the bootloader.
 
