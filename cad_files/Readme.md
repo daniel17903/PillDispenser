@@ -10,12 +10,14 @@ Based on https://github.com/Shaztech/Pilldispenser
 
 # Files
 
-All parts live in `modified/` (the original Shaztech files were superseded and removed):
+The original Shaztech files were superseded by these modified versions and removed:
 
-- `modified/bottom.stl` – housing / bottom
-- `modified/Assembly_parts/part_1.stl` … `part_6.stl` – mechanism parts
-- `modified/tray_parts.stl` – pill ring with ratchet teeth
-- `modified/top.stl` – lid (pins face into the housing)
-- `modified/foot.stl` – stand, the wheel stands upright with the outlet facing down
+- `bottom.stl` – housing / bottom
+- `Assembly_parts/part_1.stl` … `part_6.stl` – mechanism parts
+- `tray_parts.stl` – pill ring with ratchet teeth
+- `top.stl` – lid (pins face into the housing)
+- `foot.stl` – stand, the wheel stands upright with the outlet facing down
 
 See `explosionszeichnung.png` for an exploded view (placement of the mechanism parts is schematic).
+
+`render_explosion.py` regenerates the image (run it from this folder: `python3 render_explosion.py explosionszeichnung.png`).
